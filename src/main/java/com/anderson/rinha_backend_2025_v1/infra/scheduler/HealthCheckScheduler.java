@@ -1,10 +1,10 @@
 package com.anderson.rinha_backend_2025_v1.infra.scheduler;
 
 import com.anderson.rinha_backend_2025_v1.domain.model.enums.ProcessorType;
-import com.anderson.rinha_backend_2025_v1.infra.client.PaymentProcessorDefault;
-import com.anderson.rinha_backend_2025_v1.infra.client.PaymentProcessorFallback;
-import com.anderson.rinha_backend_2025_v1.infra.client.dtos.ServiceHealthDTO;
-import com.anderson.rinha_backend_2025_v1.infra.db.cache.ProcessorCacheService;
+import com.anderson.rinha_backend_2025_v1.domain.services.IPaymentProcessorDefaultService;
+import com.anderson.rinha_backend_2025_v1.domain.services.IPaymentProcessorFallbackService;
+import com.anderson.rinha_backend_2025_v1.domain.services.IProcessorCacheService;
+import com.anderson.rinha_backend_2025_v1.domain.model.dtos.ServiceHealthDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,9 +14,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class HealthCheckScheduler {
 
-    private final PaymentProcessorDefault paymentProcessorDefault;
-    private final PaymentProcessorFallback paymentProcessorFallback;
-    private final ProcessorCacheService processorCacheService;
+    private final IPaymentProcessorDefaultService paymentProcessorDefault;
+    private final IPaymentProcessorFallbackService paymentProcessorFallback;
+    private final IProcessorCacheService processorCacheService;
 
     @Value("${processor.default.margin:10}")
     private int defaultMargin;
@@ -51,7 +51,7 @@ public class HealthCheckScheduler {
                 return;
             }
 
-            int diff =  minResponseDefault - minResponseFallback;
+            int diff = minResponseDefault - minResponseFallback;
             processorCacheService.setCurrentProcessor((diff > defaultMargin) ? typeFallback : typeDefault);
             return;
             /*

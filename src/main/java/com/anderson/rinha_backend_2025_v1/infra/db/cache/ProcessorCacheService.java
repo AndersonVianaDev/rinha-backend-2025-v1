@@ -1,5 +1,6 @@
 package com.anderson.rinha_backend_2025_v1.infra.db.cache;
 
+import com.anderson.rinha_backend_2025_v1.domain.services.IProcessorCacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -8,7 +9,8 @@ import static com.anderson.rinha_backend_2025_v1.infra.util.Constants.PROCESSOR_
 
 @Service
 @RequiredArgsConstructor
-public class ProcessorCacheService {
+public class ProcessorCacheService implements IProcessorCacheService {
+
     private final StringRedisTemplate redisTemplate;
 
     public void setCurrentProcessor(String processor) {

@@ -1,5 +1,8 @@
 package com.anderson.rinha_backend_2025_v1.infra.aws.consumer;
 
+import com.anderson.rinha_backend_2025_v1.domain.services.IPaymentService;
+import com.anderson.rinha_backend_2025_v1.domain.services.IProcessorCacheService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,7 +12,10 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 @Component
 @RequiredArgsConstructor
 public class ConsumerRunner {
+
     private final SqsClient sqsClient;
+    private final IPaymentService paymentService;
+    private ObjectMapper mapper;
 
     @Value("${aws.sqs.queue-url}")
     private String queueUrl;
@@ -17,11 +23,12 @@ public class ConsumerRunner {
     @Value("${aws.sqs.consumer-count:10}")
     private int consumerCount;
 
+
     @PostConstruct
     public void startConsumers() {
         for (int i = 1; i <= consumerCount; i++) {
             Thread.startVirtualThread(() -> {
-                new MessageConsumer(sqsClient, queueUrl).run();
+                new MessageConsumer(sqsClient, queueUrl, mapper, paymentService).run();
             });
         }
     }
