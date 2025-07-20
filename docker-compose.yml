@@ -8,8 +8,39 @@ services:
       POSTGRES_PASSWORD: test
     ports:
       - "5432:5432"
+    networks:
+      - anderson-rinha
+
   redis:
     image: redis:7.2-alpine
     container_name: redis
     ports:
       - "6379:6379"
+    networks:
+      - anderson-rinha
+
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    environment:
+      - SERVICES=sqs
+      - DEFAULT_REGION=us-east-1
+      - EDGE_PORT=4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - SQS_ENDPOINT_STRATEGY=off
+      - LS_LOG=info
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    ports:
+      - "4566:4566"
+    networks:
+      - anderson-rinha
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./scripts/localstack-init.sh:/etc/localstack/init/ready.d/init-sqs.sh
+
+networks:
+  anderson-rinha:
+    driver: bridge
+  payment-processor:
+    external: true

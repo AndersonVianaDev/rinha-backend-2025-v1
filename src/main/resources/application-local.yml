@@ -29,7 +29,7 @@ spring:
 
 aws:
   sqs:
-    queue-url: https://sqs.us-east-1.amazonaws.com/122610513086/WELCOME_QUEUE
+    queue-url: http://localhost.localstack.cloud:4566/000000000000/rinha
     consumer-count: 10
 
 processor:

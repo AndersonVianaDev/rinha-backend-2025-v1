@@ -13,6 +13,6 @@ public interface PaymentProcessorFallback {
     @GetMapping("/service-health")
     ServiceHealthDTO serviceHealth();
 
-    @PostMapping(value = "/payments", consumes = "application/json")
+    @PostMapping(consumes = "application/json")
     void processPayment(@RequestBody PaymentProcessorRequestDTO request);
 }

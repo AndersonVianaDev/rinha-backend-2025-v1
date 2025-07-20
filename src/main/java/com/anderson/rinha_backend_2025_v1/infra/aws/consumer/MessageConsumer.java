@@ -41,6 +41,7 @@ public class MessageConsumer implements Runnable {
                             .build());
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 return;
             }
         }
