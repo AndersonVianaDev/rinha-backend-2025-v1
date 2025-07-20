@@ -1,12 +1,13 @@
 package com.anderson.rinha_backend_2025_v1.controller;
 
 import com.anderson.rinha_backend_2025_v1.controller.dtos.PaymentRequestDTO;
+import com.anderson.rinha_backend_2025_v1.domain.model.dtos.PaymentSummaryDTO;
 import com.anderson.rinha_backend_2025_v1.domain.services.IPaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.Instant;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,6 +19,13 @@ public class PaymentController {
     public ResponseEntity<Void> save(@RequestBody PaymentRequestDTO request) {
         service.save(PaymentRequestDTO.of(request));
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/payments-summary")
+    public ResponseEntity<PaymentSummaryDTO> summary(@RequestParam("from")Instant from,
+                                                     @RequestParam("to") Instant to) {
+        final PaymentSummaryDTO summary = service.summary(from, to);
+        return ResponseEntity.ok(summary);
     }
 
 }
