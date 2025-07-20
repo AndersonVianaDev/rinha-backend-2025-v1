@@ -22,8 +22,8 @@ public class PaymentController {
     }
 
     @GetMapping("/payments-summary")
-    public ResponseEntity<PaymentSummaryDTO> summary(@RequestParam("from")Instant from,
-                                                     @RequestParam("to") Instant to) {
+    public ResponseEntity<PaymentSummaryDTO> summary(@RequestParam(name = "from", required = false)Instant from,
+                                                     @RequestParam(name = "to", required = false) Instant to) {
         final PaymentSummaryDTO summary = service.summary(from, to);
         return ResponseEntity.ok(summary);
     }
