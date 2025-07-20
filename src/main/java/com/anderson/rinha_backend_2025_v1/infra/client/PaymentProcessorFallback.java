@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "PaymentProcessorFallback", url = "${api.payment.fallback.url}")
+@FeignClient(name = "PaymentProcessorFallback", url = "${api.payment.url.fallback}")
 public interface PaymentProcessorFallback {
 
     @GetMapping("/service-health")

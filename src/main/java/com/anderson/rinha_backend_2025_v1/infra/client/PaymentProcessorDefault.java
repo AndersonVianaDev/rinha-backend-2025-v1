@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "PaymentProcessorDefault", url = "${api.payment.default.url}")
+@FeignClient(name = "PaymentProcessorDefault", url = "${api.payment.url.default}")
 public interface PaymentProcessorDefault {
 
     @GetMapping("/service-health")

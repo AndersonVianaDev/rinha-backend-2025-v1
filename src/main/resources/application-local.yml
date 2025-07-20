@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: rinha-backend-2025-v1
+  datasource:
+    url: jdbc:postgresql://localhost:5432/test
+    username: anderson
+    password: test
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+  redis:
+    host: localhost
+    port: 6379
+  cloud:
+    openfeign:
+      client:
+        config:
+          PaymentProcessorDefault:
+            read-timeout: 15000
+            connect-timeout: 15000
+          PaymentProcessorFallback:
+            read-timeout: 15000
+            connect-timeout: 15000
+
+aws:
+  sqs:
+    queue-url: https://sqs.us-east-1.amazonaws.com/122610513086/WELCOME_QUEUE
+    consumer-count: 10
+
+processor:
+  default:
+    margin: 10
+
+api:
+  payment:
+    url:
+      fallback: http://localhost:8002/payments
+      default: http://localhost:8001/payments
+
+

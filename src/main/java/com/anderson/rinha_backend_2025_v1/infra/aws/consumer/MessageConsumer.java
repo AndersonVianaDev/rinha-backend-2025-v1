@@ -13,7 +13,6 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
 import java.util.List;
 
-@Component
 @AllArgsConstructor
 public class MessageConsumer implements Runnable {
 

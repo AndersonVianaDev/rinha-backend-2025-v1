@@ -15,7 +15,7 @@ public class ConsumerRunner {
 
     private final SqsClient sqsClient;
     private final IPaymentService paymentService;
-    private ObjectMapper mapper;
+    private final ObjectMapper mapper;
 
     @Value("${aws.sqs.queue-url}")
     private String queueUrl;
