@@ -24,7 +24,7 @@ O projeto está preparado para evoluir em duas próximas versões:
 - **Persistência:** PostgreSQL para armazenamento dos pagamentos.
 - **Mensageria:** Integração com AWS SQS (simulada via LocalStack).
 - **Cache:** Redis para otimizações e controle de processadores.
-- **Testes de carga:** Scripts prontos usando k6.
+- **Testes de carga:** utilização de scripts prontos em k6 disponibilizados pelo desafio para execução dos testes
 
 ### Principais Pacotes
 
