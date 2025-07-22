@@ -27,6 +27,9 @@ spring:
             read-timeout: 15000
             connect-timeout: 15000
 
+server:
+  port: 9999
+
 aws:
   sqs:
     queue-url: http://localhost.localstack.cloud:4566/000000000000/rinha
