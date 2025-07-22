@@ -29,19 +29,16 @@ public class PaymentServiceImpl implements IPaymentService {
     private final IProcessorCacheService processorCacheService;
     private final IPaymentProcessorDefaultService paymentProcessorDefault;
     private final IPaymentProcessorFallbackService paymentProcessorFallback;
-    //private final ExecutorService executor = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor();
 
     @Override
     public void save(Payment payment) {
-        //executor.submit(() -> repository.save(payment));
-        repository.save(payment);
         messageProducer.send(payment);
     }
 
     @Override
     public void process(Payment payment) {
         final ProcessorType type = ProcessorType.getType(processorCacheService.getCurrentProcessor());
-        if (ProcessorType.FAILURE.equals(type)) {
+        if (isNull(type) || ProcessorType.FAILURE.equals(type)) {
             /*
              * TODO -> avaliar se é necessário persistir o pagamento com status de falha (FAILURE) no banco de dados
              * (NÃO ENTRA NO ESCOPO DO PROJETO)
