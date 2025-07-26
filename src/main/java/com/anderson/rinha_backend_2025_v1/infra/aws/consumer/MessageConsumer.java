@@ -1,49 +1,33 @@
 package com.anderson.rinha_backend_2025_v1.infra.aws.consumer;
 
 import com.anderson.rinha_backend_2025_v1.domain.model.Payment;
+import com.anderson.rinha_backend_2025_v1.domain.services.IMessageProducer;
 import com.anderson.rinha_backend_2025_v1.domain.services.IPaymentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
+import io.awspring.cloud.sqs.annotation.SqsListener;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
-import software.amazon.awssdk.services.sqs.model.Message;
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
 import java.util.List;
 
-@AllArgsConstructor
-public class MessageConsumer implements Runnable {
+@Component
+@RequiredArgsConstructor
+public class MessageConsumer {
 
-    private final SqsClient sqsClient;
-    private final String queueUrl;
     private final ObjectMapper mapper;
     private final IPaymentService service;
+    private final IMessageProducer messageProducer;
 
-    @Override
-    public void run() {
-        while (true) {
+    @SqsListener("${spring.cloud.aws.sqs.queue-url}")
+    public void consumer(List<Payment> payments) {
+        System.out.println("Thread: " + Thread.currentThread().getName() + " | Batch size: " + payments.size());
+        payments.parallelStream().forEach(payment -> {
             try {
-                ReceiveMessageRequest receiveRequest = ReceiveMessageRequest.builder()
-                        .queueUrl(queueUrl)
-                        .maxNumberOfMessages(10)
-                        .waitTimeSeconds(10)
-                        .build();
-                List<Message> messages = sqsClient.receiveMessage(receiveRequest).messages();
-                for (Message message : messages) {
-                    Payment payment = mapper.readValue(message.body(), Payment.class);
-                    service.process(payment);
-
-                    sqsClient.deleteMessage(DeleteMessageRequest.builder()
-                            .queueUrl(queueUrl)
-                            .receiptHandle(message.receiptHandle())
-                            .build());
-                }
+                service.process(payment);
             } catch (Exception e) {
-                e.printStackTrace();
-                return;
+                System.out.println("Error processing payment: " + e.getMessage());
+                messageProducer.sendToQueueDlq(payment);
             }
-        }
+        });
     }
 }

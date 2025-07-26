@@ -39,14 +39,7 @@ public class PaymentServiceImpl implements IPaymentService {
     public void process(Payment payment) {
         final ProcessorType type = ProcessorType.getType(processorCacheService.getCurrentProcessor());
         if (isNull(type) || ProcessorType.FAILURE.equals(type)) {
-            /*
-             * TODO -> avaliar se é necessário persistir o pagamento com status de falha (FAILURE) no banco de dados
-             * (NÃO ENTRA NO ESCOPO DO PROJETO)
-             */
-
-            // payment.setType(ProcessorType.FAILURE);
-            // repository.save(payment);
-            throw new UnexpectedException("servers unavailable");
+            throw new UnexpectedException("Unable to determine a valid payment processor");
         }
 
         final Instant now = Instant.now();
@@ -67,7 +60,7 @@ public class PaymentServiceImpl implements IPaymentService {
                     paymentProcessorFallback.processPayment(request);
                     payment.setType(ProcessorType.FALLBACK);
                 } catch (Exception ex) {
-                    throw new UnexpectedException("servers unavailable");
+                    throw new UnexpectedException("Payment processing failed using both DEFAULT and FALLBACK processors");
                 }
             }
         }
@@ -81,7 +74,7 @@ public class PaymentServiceImpl implements IPaymentService {
                     paymentProcessorDefault.processPayment(request);
                     payment.setType(ProcessorType.DEFAULT);
                 } catch (Exception ex) {
-                    throw new UnexpectedException("servers unavailable");
+                    throw new UnexpectedException("Payment processing failed using both FALLBACK and DEFAULT processors.");
                 }
             }
         }

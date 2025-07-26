@@ -9,6 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import java.util.UUID;
+
+import static com.anderson.rinha_backend_2025_v1.infra.util.Constants.LOCK_KEY;
 
 @Component
 @RequiredArgsConstructor
@@ -17,57 +21,53 @@ public class HealthCheckScheduler {
     private final IPaymentProcessorDefaultService paymentProcessorDefault;
     private final IPaymentProcessorFallbackService paymentProcessorFallback;
     private final IProcessorCacheService processorCacheService;
+    private final StringRedisTemplate redisTemplate;
 
-    @Value("${processor.default.margin:10}")
+    @Value("${processor.default.margin:250}")
     private int defaultMargin;
 
     @Scheduled(fixedRate = 5000)
     public void healthCheck() {
-        try {
-            final ServiceHealthDTO serviceHealthDefault = paymentProcessorDefault.serviceHealth();
-            final ServiceHealthDTO serviceHealthFallback = paymentProcessorFallback.serviceHealth();
+        String lockValue = UUID.randomUUID().toString();
+        Boolean acquired = redisTemplate.opsForValue()
+                .setIfAbsent(LOCK_KEY, lockValue, java.time.Duration.ofSeconds(4));
+        if (acquired == null || !acquired) {
+            return;
+        }
 
-            final boolean failingDefault = serviceHealthDefault.failing();
-            final boolean failingFallback = serviceHealthFallback.failing();
+        final ServiceHealthDTO serviceHealthDefault = paymentProcessorDefault.serviceHealth();
+        final ServiceHealthDTO serviceHealthFallback = paymentProcessorFallback.serviceHealth();
 
-            final int minResponseDefault = serviceHealthDefault.minResponseTime();
-            final int minResponseFallback = serviceHealthFallback.minResponseTime();
+        final boolean failingDefault = serviceHealthDefault.failing();
+        final boolean failingFallback = serviceHealthFallback.failing();
 
-            final String typeDefault = ProcessorType.DEFAULT.name();
-            final String typeFallback = ProcessorType.FALLBACK.name();
+        final int minResponseDefault = serviceHealthDefault.minResponseTime();
+        final int minResponseFallback = serviceHealthFallback.minResponseTime();
 
-            if (!failingDefault && failingFallback) {
+        final String typeDefault = ProcessorType.DEFAULT.name();
+        final String typeFallback = ProcessorType.FALLBACK.name();
+
+        if (!failingDefault && failingFallback) {
+            processorCacheService.setCurrentProcessor(typeDefault);
+            return;
+        }
+
+        if (failingDefault && !failingFallback) {
+            processorCacheService.setCurrentProcessor(typeFallback);
+            return;
+        }
+
+        if (!failingDefault && !failingFallback) {
+            if ((minResponseDefault < minResponseFallback) || (minResponseDefault == minResponseFallback)) {
                 processorCacheService.setCurrentProcessor(typeDefault);
                 return;
             }
 
-            if (failingDefault && !failingFallback) {
-                processorCacheService.setCurrentProcessor(typeFallback);
-                return;
-            }
-
-            if (!failingDefault && !failingFallback) {
-                if ((minResponseDefault < minResponseFallback) || (minResponseDefault == minResponseFallback)) {
-                    processorCacheService.setCurrentProcessor(typeDefault);
-                    return;
-                }
-
-                int diff = minResponseDefault - minResponseFallback;
-                processorCacheService.setCurrentProcessor((diff > defaultMargin) ? typeFallback : typeDefault);
-                return;
-                /*
-                 *  DEFAULT | FALLBACK | DIFF  >  DEFAULT_MARGIN | BOOLEAN
-                 *   120    |   100    |  20   >       10        |  TRUE  = FALLBACK
-                 *   100    |   120    | -20   >       10        |  FALSE = DEFAULT
-                 *    92    |   100    | -8    >       10        |  FALSE = DEFAULT
-                 *   100    |   92     |  8    >       10        |  FALSE = DEFAULT
-                 *   103    |   92     |  11   >       10        |  TRUE = FALLBACK
-                 */
-            }
-
-            processorCacheService.setCurrentProcessor(ProcessorType.FAILURE.name());
-        } catch (Exception e) {
+            int diff = minResponseDefault - minResponseFallback;
+            processorCacheService.setCurrentProcessor((diff > defaultMargin) ? typeFallback : typeDefault);
             return;
         }
+
+        processorCacheService.setCurrentProcessor(ProcessorType.FAILURE.name());
     }
 }

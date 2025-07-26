@@ -4,19 +4,23 @@ import com.anderson.rinha_backend_2025_v1.domain.model.Payment;
 import com.anderson.rinha_backend_2025_v1.domain.services.IMessageProducer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.awspring.cloud.sqs.operations.SqsTemplate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 @Service
 @RequiredArgsConstructor
 public class MessageProducerImpl implements IMessageProducer {
 
-    @Value("${aws.sqs.queue-url}")
+    @Value("${spring.cloud.aws.sqs.queue-url}")
     private String queueUrl;
 
-    private final SqsTemplate sqsTemplate;
+    @Value("${spring.cloud.aws.sqs.dlq-url}")
+    private String dlqUrl;
+
+    private final SqsAsyncClient amazonSQS;
 
     private final ObjectMapper mapper;
 
@@ -24,7 +28,27 @@ public class MessageProducerImpl implements IMessageProducer {
     public void send(Payment payment) {
         try {
             final String json = mapper.writeValueAsString(payment);
-            sqsTemplate.send(queueUrl, json);
+            SendMessageRequest request = SendMessageRequest.builder()
+                    .queueUrl(queueUrl)
+                    .messageBody(json)
+                    .build();
+
+            amazonSQS.sendMessage(request);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void sendToQueueDlq(Payment payment) {
+        try {
+            final String json = mapper.writeValueAsString(payment);
+            SendMessageRequest request = SendMessageRequest.builder()
+                    .queueUrl(dlqUrl)
+                    .messageBody(json)
+                    .build();
+
+            amazonSQS.sendMessage(request);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

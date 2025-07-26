@@ -6,18 +6,42 @@ spring:
     username: anderson
     password: test
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 90
+      minimum-idle: 10
+      idle-timeout: 30000
+      max-lifetime: 600000
+      connection-timeout: 10000
   jpa:
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: true
+    #show-sql: true
   redis:
     host: localhost
     port: 6379
+    lettuce:
+      pool:
+        max-active: 50
+        max-idle: 25
+        min-idle: 10
+        max-wait: 5000
   cloud:
+    aws:
+      sqs:
+        listener:
+          max-number-of-messages: 10
+          wait-time-out: 20
+          concurrency: 10
+        queue-url: https://localhost.localstack.cloud:4566/000000000000/rinha
+        dlq-url: https://localhost.localstack.cloud:4566/000000000000/rinha-dlq
     openfeign:
+      httpclient:
+        enabled: true
+        max-connections: 100
+        max-connections-per-route: 50
       client:
         config:
           PaymentProcessorDefault:
@@ -30,14 +54,9 @@ spring:
 server:
   port: 9999
 
-aws:
-  sqs:
-    queue-url: http://localhost.localstack.cloud:4566/000000000000/rinha
-    consumer-count: 10
-
 processor:
   default:
-    margin: 10
+    margin: 500
 
 api:
   payment:

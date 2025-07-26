@@ -6,8 +6,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
-@SpringBootApplication
 @EnableFeignClients
+@SpringBootApplication
 public class RinhaBackend2025V1Application {
 
 	public static void main(String[] args) {
