@@ -12,9 +12,8 @@ Este repositório implementa a primeira versão do desafio "Rinha de Backend 202
 O objetivo principal foi entregar uma solução performática, 
 sem abrir mão das boas práticas de arquitetura, organização e código limpo — ou seja, sem gambiarras.
 
-O projeto está preparado para evoluir em duas próximas versões:
-- **v2:** Java com Quarkus, buscando o máximo desempenho possível.
-- **v3:** Reimplementação em Go (Golang).
+O projeto está preparado para evoluir em mais uma versão:
+- **v2:** Reimplementação em Go (Golang)
 
 ---
 
@@ -93,13 +92,6 @@ Veja o [README de testes](rinha-test/README.md) para mais detalhes.
 
 ---
 
-## Roadmap das Próximas Versões
-
-- **v2:** Java + Quarkus, foco em desempenho extremo.
-- **v3:** Go (Golang), para explorar o máximo de performance e concorrência.
-
----
-
 ## Processamento Assíncrono e Inteligência de Escolha do Processor
 
 O fluxo de processamento de pagamentos é totalmente **assíncrono**:
@@ -130,6 +122,18 @@ Essa abordagem garante:
 - **Alta disponibilidade**: tolerância a falhas dos processors.
 - **Baixa latência**: processamento assíncrono e desacoplado.
 - **Otimização de custos**: sempre buscando a menor taxa possível, sem sacrificar a performance.
+
+---
+
+## Grandes Aprendizados da Rinha
+
+#### SqsTemplate vs SqsAsyncClient
+- **SqsTemplate** (Spring Cloud AWS) oferece conveniência e abstrações, mas **não é a melhor opção para cenários de alta performance**.
+- **SqsAsyncClient** (AWS SDK v2) é significativamente mais eficiente.
+
+#### Lock Distribuído com Redis
+- **Lock distribuído** via Redis garante que apenas uma instância execute o health check
+- **Centralização de decisões** é fundamental em arquiteturas distribuídas para manter consistência.
 
 ---
 
