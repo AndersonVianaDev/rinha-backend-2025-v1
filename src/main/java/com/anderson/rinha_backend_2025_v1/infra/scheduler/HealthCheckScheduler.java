@@ -21,16 +21,14 @@ public class HealthCheckScheduler {
     private final IPaymentProcessorDefaultService paymentProcessorDefault;
     private final IPaymentProcessorFallbackService paymentProcessorFallback;
     private final IProcessorCacheService processorCacheService;
-    private final StringRedisTemplate redisTemplate;
 
     @Value("${processor.default.margin:250}")
     private int defaultMargin;
 
     @Scheduled(fixedRate = 5000)
     public void healthCheck() {
-        String lockValue = UUID.randomUUID().toString();
-        Boolean acquired = redisTemplate.opsForValue()
-                .setIfAbsent(LOCK_KEY, lockValue, java.time.Duration.ofSeconds(4));
+        final String lockValue = UUID.randomUUID().toString();
+        final Boolean acquired = processorCacheService.setRedisLock(lockValue);
         if (acquired == null || !acquired) {
             return;
         }
@@ -63,7 +61,7 @@ public class HealthCheckScheduler {
                 return;
             }
 
-            int diff = minResponseDefault - minResponseFallback;
+            final int diff = minResponseDefault - minResponseFallback;
             processorCacheService.setCurrentProcessor((diff > defaultMargin) ? typeFallback : typeDefault);
             return;
         }
